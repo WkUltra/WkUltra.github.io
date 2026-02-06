@@ -343,6 +343,10 @@
         initSkinShop();
 
         // --- GAME LOOP ---
+        let lastTime = 0;
+        let accumulator = 0;
+        const step = 1 / GAME_SPEED;
+
         function startGame() {
             snake = [
                 { x: Math.floor(TILE_COUNT_X / 2), y: Math.floor(TILE_COUNT_Y / 2) },
@@ -373,19 +377,26 @@
                 document.getElementById('mobile-controls').classList.remove('hidden');
             }
 
-            loop();
+            // --- CORRECTION CRITIQUE DU TEMPS ---
+            lastTime = performance.now(); // Réinitialiser le temps pour éviter le "jump" de la mort
+            accumulator = 0;
+            requestAnimationFrame(loop);
         }
 
-        let lastTime = 0;
-        let accumulator = 0;
-        const step = 1 / GAME_SPEED;
-
-        function loop(time = 0) {
+        function loop(time) {
             if (gameState !== 'PLAYING') return;
             requestAnimationFrame(loop);
 
-            const deltaTime = (time - lastTime) / 1000;
+            // Sécurité pour le premier frame ou si time est bizarre
+            if (!time) time = performance.now();
+
+            let deltaTime = (time - lastTime) / 1000;
             lastTime = time;
+
+            // Protection contre les gros lags (ex: changement d'onglet)
+            // Si le temps écoulé est trop grand, on le cape à 0.1s
+            if (deltaTime > 0.1) deltaTime = 0.1;
+
             accumulator += deltaTime;
 
             while (accumulator > step) {
