@@ -3,921 +3,864 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Waajk Surfer - GOD TIER</title>
+    <title>Galactic Defender Ultimate</title>
+    <!-- Importation de FontAwesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Titan+One&display=swap');
+        :root {
+            --primary: #00d2ff;
+            --secondary: #3a7bd5;
+            --accent: #ffea00;
+            --danger: #ff4444;
+            --bg: #050505;
+            --glass: rgba(20, 20, 30, 0.85);
+        }
 
         body {
             margin: 0;
             overflow: hidden;
-            background-color: #1a1a2e;
-            font-family: 'Titan One', cursive;
+            background-color: var(--bg);
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            touch-action: none;
             user-select: none;
-            -webkit-user-select: none;
-            touch-action: none; 
         }
 
-        #game-container {
+        canvas {
+            display: block;
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            z-index: 1;
         }
 
+        /* --- UI LAYER --- */
         #ui-layer {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
             z-index: 10;
+            pointer-events: none; /* Laisse passer les clics vers le canvas si besoin */
         }
 
-        .hud-top {
-            padding: 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-
-        .hud-score-box {
-            text-align: right;
-        }
-
-        .hud-label {
-            font-size: 14px;
-            color: #bdc3c7;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 5px;
-            text-shadow: 0 2px 0 rgba(0,0,0,0.5);
-        }
-
-        .hud-value {
-            font-size: 48px;
-            color: white;
-            text-shadow: 3px 3px 0 #2c3e50, 0 5px 10px rgba(0,0,0,0.5);
-            -webkit-text-stroke: 1px #000;
-        }
-
-        .coin-counter {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 32px;
-            color: #f1c40f;
-            text-shadow: 2px 2px 0 #d35400;
-        }
-
+        /* Classes utilitaires */
         .screen {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, rgba(41, 128, 185, 0.95), rgba(44, 62, 80, 0.95));
-            backdrop-filter: blur(10px);
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            color: white;
-            z-index: 20;
-            transition: opacity 0.4s, transform 0.4s;
+            pointer-events: auto;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            transition: opacity 0.3s;
+            overflow-y: auto; /* Pour le scroll sur mobile */
         }
 
-        .hidden { 
-            opacity: 0; 
-            pointer-events: none; 
-            transform: scale(1.1);
+        .hidden {
+            opacity: 0;
+            pointer-events: none !important;
+            z-index: -1;
+        }
+
+        /* --- HEADER & CURRENCY --- */
+        .currency-bar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 20px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .coin-display { color: var(--accent); }
+        .level-display { color: var(--primary); }
+
+        /* --- LOBBY --- */
+        #lobby-screen {
+            justify-content: center;
         }
 
         h1 {
-            font-size: 90px;
-            margin: 0;
-            color: #f1c40f;
-            text-shadow: 
-                0 10px 0 #e67e22, 
-                0 20px 0 #d35400,
-                0 30px 40px rgba(0,0,0,0.4);
-            transform: rotate(-3deg);
-            letter-spacing: -2px;
-            line-height: 0.8;
+            font-size: 50px;
+            margin: 0 0 10px 0;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            text-shadow: 0 0 20px rgba(0, 210, 255, 0.3);
             text-align: center;
         }
 
-        .tagline {
-            font-size: 24px;
-            color: #ecf0f1;
-            margin-top: 20px;
-            margin-bottom: 50px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-            background: rgba(0,0,0,0.3);
-            padding: 8px 24px;
-            border-radius: 50px;
-            border: 2px solid rgba(255,255,255,0.1);
+        .xp-container {
+            width: 300px;
+            margin-bottom: 40px;
+            text-align: center;
         }
 
-        .btn {
-            background: linear-gradient(to bottom, #2ecc71, #27ae60);
-            border: none;
-            padding: 25px 100px;
-            font-size: 40px;
-            color: white;
-            border-radius: 80px;
-            cursor: pointer;
-            font-family: 'Titan One', cursive;
-            text-transform: uppercase;
-            box-shadow: 
-                0 10px 0 #1e8449, 
-                0 20px 30px rgba(0,0,0,0.4),
-                inset 0 2px 0 rgba(255,255,255,0.4);
-            transition: transform 0.1s, filter 0.1s;
-            position: relative;
+        .xp-bar-bg {
+            width: 100%;
+            height: 10px;
+            background: #333;
+            border-radius: 5px;
+            margin-top: 5px;
             overflow: hidden;
         }
-        
-        .btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
-        .btn:active {
-            transform: translateY(10px);
-            box-shadow: 0 0 0 #1e8449;
+
+        .xp-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), #00ff88);
+            width: 0%;
+            transition: width 0.5s ease-out;
         }
 
-        .btn::after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
-            transform: rotate(45deg);
-            animation: shine 3s infinite;
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
         }
 
-        @keyframes shine {
-            0% { left: -100%; }
-            20% { left: 100%; }
-            100% { left: 100%; }
-        }
-
-        input#username {
-            background: white;
-            border: 5px solid #f1c40f;
-            padding: 15px;
+        /* --- BUTTONS --- */
+        .btn {
+            padding: 15px 30px;
+            font-size: 18px;
+            border: none;
             border-radius: 15px;
-            font-family: 'Titan One', cursive;
-            font-size: 24px;
-            text-align: center;
-            width: 300px;
-            margin-bottom: 30px;
-            outline: none;
-            color: #2c3e50;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: transform 0.1s, box-shadow 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-width: 160px;
         }
 
-        /* Leaderboard styling */
-        .lb-container {
-            background: rgba(0,0,0,0.5);
-            border-radius: 20px;
-            padding: 20px;
-            width: 90%;
-            max-width: 400px;
-            margin-bottom: 30px;
-            border: 2px solid rgba(255,255,255,0.1);
+        .btn:active { transform: scale(0.95); }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);
+            width: 250px;
+            height: 60px;
+            font-size: 24px;
+            grid-column: span 2; /* Bouton jouer prend toute la largeur */
         }
-        .lb-item {
+
+        .btn-secondary {
+            background: var(--glass);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-shop { color: var(--accent); }
+        .btn-pass { color: #ff8800; }
+
+        /* --- SHOP & PASS --- */
+        .content-container {
+            width: 90%;
+            max-width: 800px;
+            margin-top: 80px;
+            padding-bottom: 50px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        /* Shop Cards */
+        .shop-card {
+            background: var(--glass);
+            border-radius: 15px;
+            padding: 20px;
+            width: 140px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: border-color 0.2s;
+            position: relative;
+        }
+
+        .shop-card.owned { border-color: #00ff88; }
+        .shop-card.selected { border-color: var(--primary); box-shadow: 0 0 15px var(--primary); }
+
+        .skin-preview {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 10px auto;
+            border-radius: 50%;
+        }
+
+        .price-tag { color: var(--accent); font-weight: bold; margin-top: 5px; }
+        
+        /* Battle Pass Rows */
+        .pass-row {
+            background: var(--glass);
+            width: 100%;
+            padding: 15px;
+            border-radius: 10px;
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            font-size: 20px;
+            align-items: center;
+            margin-bottom: 10px;
+            border-left: 5px solid #333;
         }
-        .lb-rank { color: #f1c40f; margin-right: 10px; }
+
+        .pass-row.unlocked { border-left-color: #00ff88; }
+        .pass-row.locked { opacity: 0.6; }
+
+        .reward-info { display: flex; align-items: center; gap: 15px; }
+        .reward-icon { font-size: 24px; color: var(--accent); }
+
+        .claim-btn {
+            background: #00ff88;
+            color: black;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .claim-btn:disabled { background: #555; color: #888; cursor: default; }
+
+        /* --- HUD (IN GAME) --- */
+        #hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 5px black;
+        }
+
+        /* --- GAME OVER --- */
+        #game-over-stats {
+            background: var(--glass);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: left;
+            min-width: 200px;
+        }
+        .stat-line { display: flex; justify-content: space-between; margin: 5px 0; }
+        .gain { color: #00ff88; }
+
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 
-    <div id="game-container"></div>
+    <canvas id="gameCanvas"></canvas>
 
     <div id="ui-layer">
-        <div class="hud-top">
-            <div class="coin-counter">
-                <div style="font-size: 40px;">🪙</div>
-                <span id="coins-display">0</span>
-            </div>
-            <div class="hud-score-box">
-                <div class="hud-label">Score</div>
-                <div id="score-display" class="hud-value">0</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ECRAN ACCUEIL -->
-    <div id="start-screen" class="screen">
-        <h1>Waajk<br>Surfer</h1>
-        <div class="tagline">GOD TIER EDITION</div>
         
-        <input type="text" id="username" placeholder="PSEUDO" maxlength="10">
-        
-        <div class="lb-container" id="leaderboard">
-            <!-- Rempli par JS -->
+        <!-- GLOBAL CURRENCY (Visible in menus) -->
+        <div id="global-currency" class="currency-bar">
+            <span class="level-display"><i class="fas fa-star"></i> Lvl <span id="ui-level">1</span></span>
+            <span class="coin-display"><i class="fas fa-coins"></i> <span id="ui-coins">0</span></span>
         </div>
 
-        <button class="btn" onclick="startGame()">JOUER</button>
-    </div>
+        <!-- LOBBY SCREEN -->
+        <div id="lobby-screen" class="screen">
+            <h1>Galactic<br>Defender</h1>
+            
+            <div class="xp-container">
+                <div>Niveau <span id="lobby-level">1</span></div>
+                <div class="xp-bar-bg">
+                    <div id="lobby-xp-fill" class="xp-bar-fill"></div>
+                </div>
+                <div style="font-size: 12px; margin-top: 5px; color: #888;"><span id="lobby-xp-text">0 / 100</span> XP</div>
+            </div>
 
-    <!-- ECRAN FIN -->
-    <div id="game-over-screen" class="screen hidden">
-        <h1 style="color: #e74c3c;">BOUM !</h1>
-        <div style="font-size: 24px; color:#ddd; margin-top:20px;">SCORE FINAL</div>
-        <div id="final-score" style="font-size: 80px; color:#f1c40f; margin-bottom: 40px; text-shadow: 0 5px 0 #d35400;">0</div>
-        <button class="btn" onclick="resetGame()">REJOUER</button>
+            <div class="menu-grid">
+                <button class="btn btn-primary" onclick="startGame()">
+                    <i class="fas fa-play"></i> JOUER
+                </button>
+                <button class="btn btn-secondary btn-shop" onclick="openShop()">
+                    <i class="fas fa-shopping-cart"></i> Shop
+                </button>
+                <button class="btn btn-secondary btn-pass" onclick="openPass()">
+                    <i class="fas fa-list-alt"></i> Pass
+                </button>
+            </div>
+            
+            <div style="font-size: 12px; color: #555;">v2.0 Ultimate Edition</div>
+        </div>
+
+        <!-- SHOP SCREEN -->
+        <div id="shop-screen" class="screen hidden">
+            <div class="back-btn" onclick="openLobby()"><i class="fas fa-arrow-left"></i> Retour</div>
+            <h2>Hangar Spatial</h2>
+            <div id="shop-container" class="content-container">
+                <!-- Shop items injected by JS -->
+            </div>
+        </div>
+
+        <!-- BATTLE PASS SCREEN -->
+        <div id="pass-screen" class="screen hidden">
+            <div class="back-btn" onclick="openLobby()"><i class="fas fa-arrow-left"></i> Retour</div>
+            <h2>Pass de Combat</h2>
+            <div id="pass-container" class="content-container">
+                <!-- Pass items injected by JS -->
+            </div>
+        </div>
+
+        <!-- IN GAME HUD -->
+        <div id="hud" class="hidden">
+            <div id="game-score">Score: 0</div>
+            <!-- On pourrait ajouter une barre de vie ici -->
+        </div>
+
+        <!-- GAME OVER SCREEN -->
+        <div id="game-over-screen" class="screen hidden">
+            <h1>Terminé</h1>
+            <div id="game-over-stats">
+                <div class="stat-line">Score: <span id="end-score">0</span></div>
+                <div class="stat-line">Pièces: <span id="end-coins" class="gain">+0</span></div>
+                <div class="stat-line">XP: <span id="end-xp" class="gain">+0</span></div>
+            </div>
+            <button class="btn btn-primary" onclick="openLobby()">
+                <i class="fas fa-home"></i> Lobby
+            </button>
+        </div>
+
     </div>
 
     <script>
-        // --- CONFIGURATION ---
-        const CONFIG = {
-            lanes: [-4.0, 0, 4.0], // Voies plus larges pour sensation de grandeur
-            colors: {
-                sky: 0x87CEEB,
-                ground: 0x2c3e50,
-                rails: 0x555555,
-                trainRed: 0xc0392b,
-                trainGreen: 0x27ae60,
-                trainBlue: 0x2980b9,
-                coin: 0xFFD700,
-                gold: 0xf1c40f
-            },
-            physics: {
-                gravity: 130, // Très lourd pour sauts secs
-                jumpForce: 28, 
-                laneSpeed: 24, // Déplacement latéral très rapide
-                fastFall: -70
-            },
-            speed: { start: 28, max: 50, accel: 0.5 }, // Le jeu accélère légèrement maintenant !
-            segmentLength: 40 // Segments plus longs pour moins de pop-in
-        };
-
-        const state = {
-            isPlaying: false,
-            score: 0,
+        /**
+         * DONNÉES ET ÉTAT DU JOUEUR (PERSISTANT)
+         */
+        const playerData = {
             coins: 0,
-            distance: 0,
-            speed: CONFIG.speed.start,
-            lane: 1,
-            playerY: 0,
-            velY: 0,
-            isJumping: false,
-            isRolling: false,
-            rollTimer: 0,
-            lastSpawnZ: 0,
-            currentSurfaceY: 0,
-            animTimer: 0,
-            cameraShake: 0
+            level: 1,
+            xp: 0,
+            xpToNext: 100,
+            inventory: ['default'], // Skins possédés
+            equippedSkin: 'default',
+            claimedPassRewards: [] // IDs des récompenses réclamées
         };
 
-        let scene, camera, renderer, clock;
-        let playerGroup, playerBody, guard;
-        let leftArm, rightArm, leftLeg, rightLeg;
-        let activeObjects = [];
-        let particles = [];
+        const SKINS_DB = {
+            'default': { name: 'Intercepteur', color: '#00d2ff', price: 0, type: 'standard' },
+            'red': { name: 'Fureur Rouge', color: '#ff4444', price: 100, type: 'attack' },
+            'gold': { name: 'Luxe Doré', color: '#ffea00', price: 500, type: 'gold' },
+            'stealth': { name: 'Fantôme', color: '#00ff88', price: 250, type: 'speed' },
+            'purple': { name: 'Néon', color: '#d200ff', price: 150, type: 'standard' }
+        };
+
+        const BATTLE_PASS_DB = [
+            { level: 2, type: 'coins', amount: 50, desc: '50 Pièces' },
+            { level: 3, type: 'coins', amount: 100, desc: '100 Pièces' },
+            { level: 5, type: 'skin', id: 'purple', desc: 'Skin Néon' },
+            { level: 7, type: 'coins', amount: 500, desc: '500 Pièces' },
+            { level: 10, type: 'skin', id: 'gold', desc: 'Skin Luxe' }
+        ];
+
+        // --- MOTEUR DU JEU ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
         
-        // Pools pour optimiser la mémoire
-        const pool = { ground: [], coins: [], particles: [] };
+        let gameRunning = false;
+        let animationId;
+        let score = 0;
+        let frames = 0;
+        let input = { x: 0, y: 0, shooting: false, left: false, right: false, type: 'mouse' };
+        
+        // Entités
+        let player, projectiles = [], enemies = [], particles = [], stars = [];
 
-        // --- MOTEUR ---
-        function init() {
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(CONFIG.colors.sky);
-            // Brouillard dense pour masquer la génération lointaine et donner du style
-            scene.fog = new THREE.Fog(CONFIG.colors.sky, 60, 180);
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            if(!gameRunning && player) {
+                player.position.x = width/2;
+                player.position.y = height - 100;
+            }
+        }
+        window.addEventListener('resize', resize);
 
-            camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 500);
-            camera.position.set(0, 7.5, 11);
-            camera.lookAt(0, 2, -15);
+        // --- CLASSES ---
+        class Player {
+            constructor() {
+                this.position = { x: width / 2, y: height - 100 };
+                this.velocity = { x: 0, y: 0 };
+                this.width = 30;
+                this.height = 40;
+                this.speed = 7;
+                
+                // Appliquer les stats du skin
+                const skin = SKINS_DB[playerData.equippedSkin];
+                this.color = skin.color;
+            }
 
-            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Ombres douces
-            renderer.outputEncoding = THREE.sRGBEncoding;
-            renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            document.getElementById('game-container').appendChild(renderer.domElement);
+            draw() {
+                ctx.save();
+                ctx.translate(this.position.x, this.position.y);
+                ctx.rotate(this.velocity.x * 0.05);
 
-            // Éclairage Cinématique
-            const ambient = new THREE.AmbientLight(0xffffff, 0.6);
-            scene.add(ambient);
+                // Design du vaisseau (simplifié mais coloré)
+                ctx.beginPath();
+                ctx.moveTo(0, -this.height);
+                ctx.lineTo(-this.width, this.height);
+                ctx.lineTo(0, this.height - 15);
+                ctx.lineTo(this.width, this.height);
+                ctx.closePath();
+                
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = this.color;
+                ctx.fill();
 
-            const sun = new THREE.DirectionalLight(0xffffff, 1.2);
-            sun.position.set(50, 100, 50);
-            sun.castShadow = true;
-            sun.shadow.mapSize.width = 2048;
-            sun.shadow.mapSize.height = 2048;
-            sun.shadow.camera.far = 300;
-            sun.shadow.camera.left = -50;
-            sun.shadow.camera.right = 50;
-            sun.shadow.camera.top = 50;
-            sun.shadow.camera.bottom = -50;
-            scene.add(sun);
+                // Détails
+                ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                ctx.beginPath();
+                ctx.moveTo(0, -10);
+                ctx.lineTo(-5, 20);
+                ctx.lineTo(5, 20);
+                ctx.fill();
 
-            // Lumière de remplissage bleue pour les ombres (ambiance ville)
-            const fillLight = new THREE.DirectionalLight(0x2980b9, 0.5);
-            fillLight.position.set(-50, 20, -50);
-            scene.add(fillLight);
+                // Flamme
+                if (gameRunning) {
+                    ctx.beginPath();
+                    ctx.moveTo(-8, this.height);
+                    ctx.lineTo(0, this.height + 25 + Math.random() * 15);
+                    ctx.lineTo(8, this.height);
+                    ctx.fillStyle = '#ffaa00';
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = 'orange';
+                    ctx.fill();
+                }
 
-            createPlayer();
-            createGuard();
-            updateLeaderboardUI();
+                ctx.restore();
+            }
 
-            window.addEventListener('resize', onResize);
-            document.addEventListener('keydown', handleKey);
-            
-            let startX, startY;
-            document.addEventListener('touchstart', e => { startX = e.touches[0].clientX; startY = e.touches[0].clientY; }, {passive: false});
-            document.addEventListener('touchend', e => {
-                const dx = e.changedTouches[0].clientX - startX;
-                const dy = e.changedTouches[0].clientY - startY;
-                if(Math.abs(dx) > Math.abs(dy)) {
-                    if(Math.abs(dx) > 30) moveLane(dx > 0 ? 1 : -1);
+            update() {
+                if (input.type === 'keyboard') {
+                    if (input.right) this.velocity.x = this.speed;
+                    else if (input.left) this.velocity.x = -this.speed;
+                    else this.velocity.x = 0;
                 } else {
-                    if(Math.abs(dy) > 30) dy < 0 ? jump() : roll();
-                }
-            });
-
-            clock = new THREE.Clock();
-            animate();
-        }
-
-        // --- ASSETS & PERSONNAGE ---
-        function createPlayer() {
-            playerGroup = new THREE.Group();
-            playerBody = new THREE.Group();
-            playerBody.position.y = 1.1;
-
-            const matSkin = new THREE.MeshStandardMaterial({color: 0xffdbac});
-            const matHoodie = new THREE.MeshStandardMaterial({color: 0xe74c3c});
-            const matJeans = new THREE.MeshStandardMaterial({color: 0x34495e});
-            const matShoes = new THREE.MeshStandardMaterial({color: 0xffffff});
-
-            // Torse (Hoodie)
-            const torse = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.9, 0.45), matHoodie);
-            torse.castShadow = true;
-            playerBody.add(torse);
-
-            // Sac à dos
-            const backpack = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.6, 0.3), new THREE.MeshStandardMaterial({color: 0x2c3e50}));
-            backpack.position.set(0, 0.1, 0.35);
-            torse.add(backpack);
-
-            // Tête
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.55, 0.5), matSkin);
-            head.position.y = 0.75;
-            torse.add(head);
-
-            // Casque Audio
-            const headphoneBand = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.05, 8, 20, Math.PI), new THREE.MeshStandardMaterial({color: 0x111111}));
-            headphoneBand.rotation.y = Math.PI/2;
-            headphoneBand.position.y = 0.3;
-            head.add(headphoneBand);
-            const earCup = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.1, 16), new THREE.MeshStandardMaterial({color: 0xf1c40f}));
-            earCup.rotation.z = Math.PI/2;
-            earCup.position.set(0.28, 0, 0);
-            head.add(earCup);
-            const earCup2 = earCup.clone();
-            earCup2.position.set(-0.28, 0, 0);
-            head.add(earCup2);
-
-            // Casquette à l'envers
-            const cap = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.15, 0.6), new THREE.MeshStandardMaterial({color: 0x2980b9}));
-            cap.position.set(0, 0.3, 0.05);
-            cap.rotation.x = 0.1;
-            head.add(cap);
-
-            // Bras
-            const armGeo = new THREE.BoxGeometry(0.22, 0.7, 0.22);
-            leftArm = new THREE.Mesh(armGeo, matHoodie);
-            leftArm.position.set(-0.48, 0.1, 0);
-            torse.add(leftArm);
-            rightArm = new THREE.Mesh(armGeo, matHoodie);
-            rightArm.position.set(0.48, 0.1, 0);
-            torse.add(rightArm);
-
-            // Jambes
-            const legGeo = new THREE.BoxGeometry(0.28, 0.8, 0.28);
-            leftLeg = new THREE.Mesh(legGeo, matJeans);
-            leftLeg.position.set(-0.2, -0.85, 0);
-            torse.add(leftLeg);
-            rightLeg = new THREE.Mesh(legGeo, matJeans);
-            rightLeg.position.set(0.2, -0.85, 0);
-            torse.add(rightLeg);
-
-            // Chaussures
-            const shoeGeo = new THREE.BoxGeometry(0.3, 0.2, 0.4);
-            const leftShoe = new THREE.Mesh(shoeGeo, matShoes);
-            leftShoe.position.set(0, -0.5, 0.1);
-            leftLeg.add(leftShoe);
-            const rightShoe = leftShoe.clone();
-            rightLeg.add(rightShoe);
-
-            playerGroup.add(playerBody);
-            scene.add(playerGroup);
-        }
-
-        function createGuard() {
-            guard = new THREE.Group();
-            // Garde plus costaud et menaçant
-            const body = new THREE.Mesh(new THREE.BoxGeometry(1.3, 2.0, 0.9), new THREE.MeshStandardMaterial({color: 0x2c3e50}));
-            body.position.y = 1.0;
-            guard.add(body);
-            // Casquette de police
-            const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.2, 16), new THREE.MeshStandardMaterial({color: 0x111111}));
-            cap.position.y = 2.1;
-            guard.add(cap);
-            guard.position.z = 6;
-            scene.add(guard);
-        }
-
-        // --- GÉNÉRATION D'OBSTACLES ---
-        function createTrain(isRamp) {
-            const g = new THREE.Group();
-            const color = isRamp ? CONFIG.colors.trainGreen : (Math.random() > 0.5 ? CONFIG.colors.trainRed : CONFIG.colors.trainBlue);
-            
-            // Corps principal
-            const body = new THREE.Mesh(new THREE.BoxGeometry(3.2, 3.8, 14), new THREE.MeshStandardMaterial({color, roughness: 0.2, metalness: 0.1}));
-            body.position.y = 1.9;
-            body.castShadow = true;
-            g.add(body);
-
-            // Toit détaillé
-            const roof = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.2, 13.8), new THREE.MeshStandardMaterial({color: 0x555555}));
-            roof.position.y = 3.9;
-            g.add(roof);
-
-            // Phares
-            const lightGeo = new THREE.CylinderGeometry(0.3, 0.3, 0.2, 16);
-            const lightMat = new THREE.MeshStandardMaterial({color: 0xffffff, emissive: 0xffffcc, emissiveIntensity: 0.5});
-            const l1 = new THREE.Mesh(lightGeo, lightMat);
-            l1.rotation.x = Math.PI/2;
-            l1.position.set(-0.8, 1.5, 7.1);
-            g.add(l1);
-            const l2 = l1.clone();
-            l2.position.set(0.8, 1.5, 7.1);
-            g.add(l2);
-
-            // Roues
-            const wheelMat = new THREE.MeshStandardMaterial({color: 0x111111});
-            const wheelGeo = new THREE.CylinderGeometry(0.5, 0.5, 3.3, 16);
-            wheelGeo.rotateZ(Math.PI/2);
-            for(let z of [-4, 4]) {
-                const w = new THREE.Mesh(wheelGeo, wheelMat);
-                w.position.set(0, 0.5, z);
-                g.add(w);
-            }
-
-            // Rampe
-            if(isRamp) {
-                const ramp = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.2, 7), new THREE.MeshStandardMaterial({color}));
-                ramp.position.set(0, 1.8, 9.5); // Ajusté pour coller au train
-                ramp.rotation.x = 0.52; // Pente douce
-                g.add(ramp);
-            }
-
-            g.userData = { type: 'obstacle', subtype: 'train', isRamp, h: 4.0 }; // Hauteur un peu plus généreuse pour hitbox
-            return g;
-        }
-
-        function createBarrier() {
-            const g = new THREE.Group();
-            // Barrière style chantier
-            const bar = new THREE.Mesh(new THREE.BoxGeometry(3.6, 1.0, 0.3), new THREE.MeshStandardMaterial({color: 0xf1c40f}));
-            bar.position.y = 1.3;
-            bar.castShadow = true;
-            g.add(bar);
-            
-            // Rayures
-            const stripeMat = new THREE.MeshBasicMaterial({color: 0x111111});
-            for(let i=0; i<4; i++) {
-                const s = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.05, 0.32), stripeMat);
-                s.position.set(-1.2 + i*0.8, 1.3, 0);
-                g.add(s);
-            }
-
-            // Pieds
-            const legGeo = new THREE.BoxGeometry(0.4, 1.8, 0.4);
-            const legMat = new THREE.MeshStandardMaterial({color: 0x95a5a6});
-            const l1 = new THREE.Mesh(legGeo, legMat);
-            l1.position.set(-1.5, 0.9, 0); g.add(l1);
-            const l2 = l1.clone(); l2.position.x = 1.5; g.add(l2);
-            
-            g.userData = { type: 'obstacle', subtype: 'barrier', h: 1.8 };
-            return g;
-        }
-
-        function createParticle(x, y, z) {
-            const geo = new THREE.BoxGeometry(0.2, 0.2, 0.2);
-            const mat = new THREE.MeshBasicMaterial({color: 0xffd700});
-            const p = new THREE.Mesh(geo, mat);
-            p.position.set(x, y, z);
-            p.userData = { 
-                vel: new THREE.Vector3((Math.random()-0.5)*10, Math.random()*10, (Math.random()-0.5)*10), 
-                life: 1.0 
-            };
-            scene.add(p);
-            particles.push(p);
-        }
-
-        // --- GÉNÉRATION DE PATTERNS ---
-        function spawnSegment(z) {
-            // Sol (Route + Trottoirs intégrés visuellement)
-            const floorW = 18;
-            const floor = new THREE.Mesh(new THREE.PlaneGeometry(floorW, 40.5), new THREE.MeshStandardMaterial({color: 0x333333, roughness: 0.8}));
-            floor.rotation.x = -Math.PI/2;
-            floor.position.z = z;
-            floor.receiveShadow = true;
-            scene.add(floor);
-            activeObjects.push(floor);
-
-            // Rails
-            CONFIG.lanes.forEach(x => {
-                const rails = new THREE.Group();
-                const r1 = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 40), new THREE.MeshStandardMaterial({color: 0x888888}));
-                r1.position.set(x-1.0, 0.1, z);
-                rails.add(r1);
-                const r2 = r1.clone();
-                r2.position.set(x+1.0, 0.1, z);
-                rails.add(r2);
-                
-                // Traverses
-                for(let k=0; k<15; k++) {
-                    const sleeper = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.1, 0.6), new THREE.MeshStandardMaterial({color: 0x5d4037}));
-                    sleeper.position.set(x, 0.05, z - 20 + k*2.6);
-                    rails.add(sleeper);
-                }
-                scene.add(rails);
-                activeObjects.push(rails);
-            });
-
-            // Environnement Latéral (Bâtiments style cartoon)
-            if(Math.random() > 0.3) {
-                const side = Math.random() > 0.5 ? 1 : -1;
-                const h = 15 + Math.random() * 20;
-                const build = new THREE.Mesh(new THREE.BoxGeometry(10, h, 15), new THREE.MeshStandardMaterial({color: new THREE.Color().setHSL(Math.random(), 0.6, 0.4)}));
-                build.position.set(side * 22, h/2, z);
-                scene.add(build);
-                activeObjects.push(build);
-            }
-
-            if(z > -40) return; // Zone de départ vide
-
-            // PATTERNS DE JEU (Logique intelligente)
-            const patternType = Math.floor(Math.random() * 4); // 0: Random, 1: 3 trains, 2: Barrière saut, 3: Pièces
-            
-            const lanes = [0, 1, 2].sort(() => Math.random() - 0.5);
-
-            if(patternType === 1) { // Mur de trains avec une rampe
-                const rampLane = lanes[0];
-                for(let i=0; i<3; i++) {
-                    const x = CONFIG.lanes[i];
-                    const isRamp = (i === rampLane);
-                    const train = createTrain(isRamp);
-                    train.position.set(x, 0, z);
-                    scene.add(train);
-                    activeObjects.push(train);
-                    
-                    if(isRamp) { // Pièces sur le train rampe
-                        addCoins(x, 5.0, z, 5);
-                    }
-                }
-            } 
-            else if (patternType === 2) { // Barrières alignées
-                for(let i=0; i<3; i++) {
-                    if(Math.random() > 0.3) {
-                        const b = createBarrier();
-                        b.position.set(CONFIG.lanes[i], 0, z);
-                        scene.add(b);
-                        activeObjects.push(b);
-                    } else {
-                         addCoins(CONFIG.lanes[i], 1.5, z, 3);
-                    }
-                }
-            }
-            else { // Random classique mais équilibré
-                for(let i=0; i<2; i++) { // Max 2 obstacles pour laisser une voie
-                    const lane = lanes[i];
-                    const x = CONFIG.lanes[lane];
-                    let obj;
-                    
-                    if(Math.random() < 0.6) {
-                        obj = createTrain(Math.random() > 0.7);
-                        // Pièces sur le toit
-                        if(Math.random() > 0.5) addCoins(x, 5.0, z, 4);
-                    } else {
-                        obj = createBarrier();
-                        // Pièce SOUS la barrière ou au dessus
-                        if(Math.random() > 0.5) {
-                            addCoins(x, 1.5, z, 1); // Juste une pièce pour inciter à sauter
-                        }
-                    }
-                    obj.position.set(x, 0, z);
-                    scene.add(obj);
-                    activeObjects.push(obj);
-                }
-                // Voie libre = pièces
-                addCoins(CONFIG.lanes[lanes[2]], 1.5, z, 5);
-            }
-        }
-
-        function addCoins(x, y, z, count) {
-            for(let k=0; k<count; k++) {
-                const coin = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.1, 16), new THREE.MeshStandardMaterial({color: 0xFFD700, metalness: 0.9, roughness: 0.1}));
-                coin.rotation.x = Math.PI/2;
-                coin.position.set(x, y, z - (count*2) + k*4);
-                coin.userData = { type: 'coin' };
-                scene.add(coin);
-                activeObjects.push(coin);
-            }
-        }
-
-        // --- GAME LOOP ---
-        function update(dt) {
-            if(!state.isPlaying) return;
-
-            // Accélération progressive
-            if(state.speed < CONFIG.speed.max) {
-                state.speed += CONFIG.speed.accel * dt;
-            }
-
-            const step = state.speed * dt;
-            state.distance += step;
-            state.score = Math.floor(state.distance * 2); // Score x2 pour le fun
-            document.getElementById('score-display').innerText = state.score;
-
-            state.lastSpawnZ += step;
-            while(state.lastSpawnZ > -240) {
-                spawnSegment(state.lastSpawnZ);
-                state.lastSpawnZ -= CONFIG.segmentLength;
-            }
-
-            let foundSurfaceY = 0;
-
-            // Gestion Objets
-            for(let i=activeObjects.length-1; i>=0; i--) {
-                const obj = activeObjects[i];
-                obj.position.z += step;
-
-                if(obj.userData.type === 'coin') {
-                    obj.rotation.y += 5 * dt;
-                    obj.rotation.z = Math.sin(Date.now()*0.005) * 0.2; // Petit flottement
-
-                    // Effet Magnétique
-                    const dx = playerGroup.position.x - obj.position.x;
-                    const dz = 0 - obj.position.z; // Player est à z=0
-                    const dist = Math.sqrt(dx*dx + dz*dz);
-                    
-                    if(dist < 4.0) { // Attraction
-                         obj.position.x += dx * 5 * dt;
-                         obj.position.z += dz * 5 * dt;
-                    }
-
-                    if(dist < 1.5) {
-                        state.coins++;
-                        document.getElementById('coins-display').innerText = state.coins;
-                        // Spawn particules
-                        for(let p=0; p<5; p++) createParticle(obj.position.x, obj.position.y, obj.position.z);
-                        scene.remove(obj);
-                        activeObjects.splice(i, 1);
-                        continue;
-                    }
+                    const dx = input.x - this.position.x;
+                    this.velocity.x = dx * 0.15;
                 }
 
-                if(obj.userData.type === 'obstacle') {
-                    const col = checkCollision(obj);
-                    if(col) {
-                        if(col.type === 'surface' || col.type === 'ramp') {
-                            foundSurfaceY = Math.max(foundSurfaceY, col.y);
-                            if(col.type === 'ramp') state.playerY = col.y; // Monter la rampe
-                        } else {
-                            gameOver();
-                        }
-                    }
-                }
-
-                if(obj.position.z > 50) {
-                    scene.remove(obj);
-                    activeObjects.splice(i, 1);
-                }
-            }
-
-            // Gestion Particules
-            for(let i=particles.length-1; i>=0; i--) {
-                const p = particles[i];
-                p.position.addScaledVector(p.userData.vel, dt);
-                p.userData.life -= dt * 2;
-                p.scale.setScalar(p.userData.life);
-                if(p.userData.life <= 0) {
-                    scene.remove(p);
-                    particles.splice(i, 1);
-                }
-            }
-
-            state.currentSurfaceY = foundSurfaceY;
-
-            // Physique Player
-            const targetX = CONFIG.lanes[state.lane];
-            const moveX = (targetX - playerGroup.position.x) * CONFIG.physics.laneSpeed * dt;
-            playerGroup.position.x += moveX;
-            // Inclinaison (Banking)
-            playerBody.rotation.z = -moveX * 0.15;
-
-            // Animation course procédurale
-            state.animTimer += dt * (state.speed * 0.8);
-            if(!state.isJumping && !state.isRolling) {
-                const runY = Math.abs(Math.sin(state.animTimer)) * 0.15;
-                playerBody.position.y = 1.1 + runY;
-                
-                const limbAmp = 0.8;
-                leftLeg.rotation.x = Math.sin(state.animTimer) * limbAmp;
-                rightLeg.rotation.x = Math.sin(state.animTimer + Math.PI) * limbAmp;
-                leftArm.rotation.x = Math.sin(state.animTimer + Math.PI) * limbAmp;
-                rightArm.rotation.x = Math.sin(state.animTimer) * limbAmp;
-            } else {
-                // Reset pose en l'air
-                leftLeg.rotation.x = 0.2; rightLeg.rotation.x = -0.2;
-                leftArm.rotation.x = -0.5; rightArm.rotation.x = -0.5;
-            }
-
-            // Saut & Gravité
-            if(state.isJumping) {
-                state.playerY += state.velY * dt;
-                state.velY -= CONFIG.physics.gravity * dt;
-                
-                if(state.velY < 0 && state.playerY <= state.currentSurfaceY) {
-                    state.playerY = state.currentSurfaceY;
-                    state.isJumping = false;
-                    playerBody.position.y = 1.1;
-                    // Impact shake
-                    state.cameraShake = 0.3;
-                }
-            } else {
-                if(state.playerY > state.currentSurfaceY + 0.2) {
-                    state.isJumping = true; 
-                    state.velY = 0;
-                } else {
-                    state.playerY = state.currentSurfaceY;
-                }
-            }
-
-            // Roulade
-            if(state.isRolling) {
-                state.rollTimer -= dt;
-                const p = 1.0 - (state.rollTimer / 0.5);
-                playerBody.rotation.x = -Math.PI * 2 * p;
-                playerBody.position.y = 0.6; // Hitbox visuelle réduite
-                if(state.rollTimer <= 0) {
-                    state.isRolling = false;
-                    playerBody.rotation.x = 0;
-                    playerBody.position.y = 1.1;
-                }
-            }
-
-            playerGroup.position.y = state.playerY;
-
-            // Camera Follow & Shake
-            camera.position.x += (playerGroup.position.x * 0.4 - camera.position.x) * 5 * dt;
-            if(state.cameraShake > 0) {
-                camera.position.y = 7.5 + (Math.random()-0.5) * state.cameraShake;
-                state.cameraShake -= dt;
-            } else {
-                camera.position.y += (7.5 - camera.position.y) * 2 * dt;
-            }
-            
-            // Le garde suit
-            guard.position.x += (playerGroup.position.x - guard.position.x) * 8 * dt;
-        }
-
-        function checkCollision(obj) {
-            const pBounds = {
-                x: playerGroup.position.x,
-                y: state.playerY + 1.1,
-                z: 0,
-                w: 0.6, h: 1.4 // Hitbox Player
-            };
-
-            const dx = Math.abs(pBounds.x - obj.position.x);
-            const dz = Math.abs(obj.position.z); // Player est à 0
-            
-            // Train
-            if(obj.userData.subtype === 'train') {
-                // Rampe logic
-                if(obj.userData.isRamp) {
-                    const distToFront = (obj.position.z + 7) - 0;
-                    if(distToFront > 0 && distToFront < 7 && dx < 1.6) {
-                        return { type: 'ramp', y: (distToFront/7) * 3.9 };
-                    }
-                }
-                // Sur le toit
-                if(state.playerY > 3.0 && dz < 6.5 && dx < 1.6) return { type: 'surface', y: 3.9 };
-                // Crash
-                if(dz < 6.0 && dx < 1.4) return { type: 'hit' };
-            }
-
-            // Barrière
-            if(obj.userData.subtype === 'barrier') {
-                if(state.playerY > 1.4 && dz < 1.0 && dx < 1.7) return { type: 'surface', y: 1.7 };
-                if(dz < 0.6 && dx < 1.7) return { type: 'hit' };
-            }
-
-            return null;
-        }
-
-        // --- INPUTS ---
-        function handleKey(e) {
-            if(!state.isPlaying) return;
-            if(e.key === 'ArrowLeft' || e.key === 'q') moveLane(-1);
-            if(e.key === 'ArrowRight' || e.key === 'd') moveLane(1);
-            if(e.key === 'ArrowUp' || e.key === 'z') jump();
-            if(e.key === 'ArrowDown' || e.key === 's') roll();
-        }
-
-        function moveLane(dir) {
-            state.lane = Math.max(0, Math.min(2, state.lane + dir));
-        }
-
-        function jump() {
-            if(!state.isJumping && !state.isRolling) {
-                state.isJumping = true; state.velY = CONFIG.physics.jumpForce;
+                this.position.x += this.velocity.x;
+                // Clamp position
+                if(this.position.x < this.width) this.position.x = this.width;
+                if(this.position.x > width - this.width) this.position.x = width - this.width;
             }
         }
 
-        function roll() {
-            if(state.isJumping) { state.isJumping = false; state.velY = CONFIG.physics.fastFall; }
-            if(!state.isRolling) { state.isRolling = true; state.rollTimer = 0.5; }
+        class Projectile {
+            constructor({ x, y }) {
+                this.position = { x, y };
+                this.velocity = { x: 0, y: -15 };
+                this.radius = 4;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.position.x, this.position.y, this.radius, 0, Math.PI*2);
+                ctx.fillStyle = '#fff';
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#fff';
+                ctx.fill();
+            }
+            update() {
+                this.position.y += this.velocity.y;
+            }
         }
 
-        function startGame() {
-            const name = document.getElementById('username').value.trim() || "SURFER";
-            // Animation UI
-            document.getElementById('start-screen').classList.add('hidden');
-            document.getElementById('game-over-screen').classList.add('hidden');
-            
-            // Reset complet
-            activeObjects.forEach(o => scene.remove(o));
-            activeObjects = [];
-            particles.forEach(p => scene.remove(p));
+        class Enemy {
+            constructor() {
+                this.radius = Math.random() * 20 + 15;
+                this.position = { x: Math.random() * (width - 60) + 30, y: -50 };
+                this.velocity = { x: (Math.random()-0.5), y: (Math.random() * 3 + 2) + (score * 0.005) };
+                this.color = `hsl(${Math.random()*360}, 50%, 50%)`;
+                this.points = [];
+                const sides = Math.floor(Math.random() * 3) + 5;
+                for(let i=0; i<sides; i++) {
+                    const angle = (i/sides) * Math.PI * 2;
+                    this.points.push({x: Math.cos(angle)*this.radius, y: Math.sin(angle)*this.radius});
+                }
+                this.rotation = 0;
+            }
+            draw() {
+                ctx.save();
+                ctx.translate(this.position.x, this.position.y);
+                ctx.rotate(this.rotation);
+                ctx.beginPath();
+                ctx.moveTo(this.points[0].x, this.points[0].y);
+                for(let i=1; i<this.points.length; i++) ctx.lineTo(this.points[i].x, this.points[i].y);
+                ctx.closePath();
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                ctx.restore();
+            }
+            update() {
+                this.position.x += this.velocity.x;
+                this.position.y += this.velocity.y;
+                this.rotation += 0.05;
+                if(this.position.x < 0 || this.position.x > width) this.velocity.x *= -1;
+            }
+        }
+
+        class Particle {
+            constructor({x, y, color}) {
+                this.position = {x, y};
+                this.velocity = {x: (Math.random()-0.5)*5, y: (Math.random()-0.5)*5};
+                this.alpha = 1;
+                this.color = color;
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.position.x, this.position.y, 3, 0, Math.PI*2);
+                ctx.fill();
+                ctx.restore();
+            }
+            update() {
+                this.position.x += this.velocity.x;
+                this.position.y += this.velocity.y;
+                this.alpha -= 0.03;
+            }
+        }
+
+        class Star {
+            constructor() {
+                this.position = { x: Math.random()*width, y: Math.random()*height };
+                this.speed = Math.random() * 2 + 0.5;
+                this.size = Math.random() * 2;
+            }
+            draw() {
+                ctx.fillStyle = `rgba(255,255,255,${Math.random()})`;
+                ctx.fillRect(this.position.x, this.position.y, this.size, this.size);
+            }
+            update() {
+                this.position.y += this.speed;
+                if(this.position.y > height) {
+                    this.position.y = 0;
+                    this.position.x = Math.random()*width;
+                }
+            }
+        }
+
+        // --- GESTION DU JEU ---
+        function initGame() {
+            resize();
+            player = new Player();
+            projectiles = [];
+            enemies = [];
             particles = [];
-            
-            state.score = 0; state.coins = 0; state.distance = 0; state.speed = CONFIG.speed.start;
-            state.isPlaying = true; state.lane = 1; state.lastSpawnZ = 0; state.playerY = 0;
-            playerGroup.position.set(0,0,0);
-            
-            // Prégénération
-            while(state.lastSpawnZ > -240) { spawnSegment(state.lastSpawnZ); state.lastSpawnZ -= CONFIG.segmentLength; }
+            score = 0;
+            frames = 0;
+            document.getElementById('game-score').innerText = 'Score: 0';
         }
 
-        function gameOver() {
-            state.isPlaying = false;
-            document.getElementById('final-score').innerText = state.score;
-            document.getElementById('game-over-screen').classList.remove('hidden');
-            
-            // Save score logic (simplified)
-            let scores = JSON.parse(localStorage.getItem('waajkGodScores') || "[]");
-            scores.push({name: document.getElementById('username').value || "Moi", score: state.score});
-            scores.sort((a,b) => b.score - a.score);
-            localStorage.setItem('waajkGodScores', JSON.stringify(scores.slice(0,5)));
-            updateLeaderboardUI();
-        }
-
-        function resetGame() { startGame(); }
-
-        function updateLeaderboardUI() {
-            const scores = JSON.parse(localStorage.getItem('waajkGodScores') || "[]");
-            const div = document.getElementById('leaderboard');
-            if(scores.length === 0) div.innerHTML = "<div style='text-align:center; color:#ccc'>Sois le premier !</div>";
-            else div.innerHTML = "<div style='text-align:center; color:#FFD700; margin-bottom:10px;'>TOP 5</div>" + 
-                scores.map((s, i) => `<div class='lb-item'><span class='lb-rank'>#${i+1}</span><span>${s.name}</span><span>${s.score}</span></div>`).join('');
+        function createStars() {
+            stars = [];
+            for(let i=0; i<100; i++) stars.push(new Star());
         }
 
         function animate() {
-            requestAnimationFrame(animate);
-            const dt = Math.min(clock.getDelta(), 0.1);
-            update(dt);
-            renderer.render(scene, camera);
+            if (!gameRunning) {
+                // Background animation in menu
+                ctx.fillStyle = 'rgba(5, 5, 5, 0.3)';
+                ctx.fillRect(0, 0, width, height);
+                stars.forEach(s => { s.update(); s.draw(); });
+                requestAnimationFrame(animate);
+                return;
+            }
+
+            animationId = requestAnimationFrame(animate);
+            ctx.fillStyle = 'rgba(5, 5, 5, 0.3)';
+            ctx.fillRect(0, 0, width, height);
+
+            stars.forEach(s => { s.update(); s.draw(); });
+
+            player.update();
+            player.draw();
+
+            // Projectiles
+            projectiles.forEach((p, i) => {
+                p.update();
+                p.draw();
+                if (p.position.y < 0) setTimeout(() => projectiles.splice(i, 1), 0);
+            });
+
+            // Enemies
+            if (frames % 60 === 0) enemies.push(new Enemy());
+            
+            enemies.forEach((e, i) => {
+                e.update();
+                e.draw();
+                
+                // Collision Joueur
+                const distPlayer = Math.hypot(player.position.x - e.position.x, player.position.y - e.position.y);
+                if (distPlayer - e.radius - player.width < -10) {
+                    gameOver();
+                }
+
+                // Cleanup
+                if (e.position.y > height) setTimeout(() => enemies.splice(i, 1), 0);
+
+                // Collision Tir
+                projectiles.forEach((p, pi) => {
+                    const dist = Math.hypot(p.position.x - e.position.x, p.position.y - e.position.y);
+                    if (dist - e.radius < 5) {
+                        for(let k=0; k<8; k++) particles.push(new Particle({x: e.position.x, y: e.position.y, color: e.color}));
+                        score += 10;
+                        document.getElementById('game-score').innerText = 'Score: ' + score;
+                        setTimeout(() => {
+                            enemies.splice(i, 1);
+                            projectiles.splice(pi, 1);
+                        }, 0);
+                    }
+                });
+            });
+
+            // Particles
+            particles.forEach((p, i) => {
+                if (p.alpha <= 0) particles.splice(i, 1);
+                else { p.update(); p.draw(); }
+            });
+
+            // Tir Auto
+            if(input.shooting && frames % 12 === 0) {
+                projectiles.push(new Projectile({x: player.position.x, y: player.position.y - 40}));
+            }
+
+            frames++;
         }
 
-        function onResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+        // --- SYSTÈME DE PROGRESSION ---
+
+        function updateCurrencyUI() {
+            document.getElementById('ui-coins').innerText = playerData.coins;
+            document.getElementById('ui-level').innerText = playerData.level;
+            
+            document.getElementById('lobby-level').innerText = playerData.level;
+            document.getElementById('lobby-xp-text').innerText = `${Math.floor(playerData.xp)} / ${playerData.xpToNext}`;
+            const pct = (playerData.xp / playerData.xpToNext) * 100;
+            document.getElementById('lobby-xp-fill').style.width = `${pct}%`;
         }
 
-        init();
+        function gainXP(amount) {
+            playerData.xp += amount;
+            if (playerData.xp >= playerData.xpToNext) {
+                playerData.xp -= playerData.xpToNext;
+                playerData.level++;
+                playerData.xpToNext = Math.floor(playerData.xpToNext * 1.2);
+                alert(`NIVEAU SUPÉRIEUR ! Vous êtes niveau ${playerData.level} !`);
+            }
+            updateCurrencyUI();
+        }
+
+        // --- GESTION UI & ÉCRANS ---
+
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+            document.getElementById('global-currency').style.display = 'flex'; // Reset default
+            
+            const el = document.getElementById(id);
+            if(el) el.classList.remove('hidden');
+
+            if (id === 'hud') {
+                document.getElementById('global-currency').style.display = 'none';
+            }
+        }
+
+        function startGame() {
+            initGame();
+            gameRunning = true;
+            showScreen('hud');
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            
+            // Calcul récompenses
+            const coinsEarned = Math.floor(score / 2);
+            const xpEarned = Math.floor(score / 1.5);
+
+            playerData.coins += coinsEarned;
+            gainXP(xpEarned);
+
+            document.getElementById('end-score').innerText = score;
+            document.getElementById('end-coins').innerText = `+${coinsEarned}`;
+            document.getElementById('end-xp').innerText = `+${xpEarned}`;
+
+            showScreen('game-over-screen');
+        }
+
+        function openLobby() {
+            gameRunning = false; // Stop game loop logic
+            updateCurrencyUI();
+            showScreen('lobby-screen');
+        }
+
+        // --- SHOP LOGIC ---
+        function openShop() {
+            const container = document.getElementById('shop-container');
+            container.innerHTML = '';
+
+            Object.keys(SKINS_DB).forEach(key => {
+                const skin = SKINS_DB[key];
+                const isOwned = playerData.inventory.includes(key);
+                const isEquipped = playerData.equippedSkin === key;
+
+                const card = document.createElement('div');
+                card.className = `shop-card ${isOwned ? 'owned' : ''} ${isEquipped ? 'selected' : ''}`;
+                
+                card.innerHTML = `
+                    <div class="skin-preview" style="background-color: ${skin.color}; box-shadow: 0 0 10px ${skin.color}"></div>
+                    <div style="font-weight:bold;">${skin.name}</div>
+                    <div class="price-tag">${isOwned ? (isEquipped ? 'ÉQUIPÉ' : 'POSSÉDÉ') : skin.price + ' <i class="fas fa-coins"></i>'}</div>
+                `;
+
+                card.onclick = () => {
+                    if (isOwned) {
+                        playerData.equippedSkin = key;
+                        openShop(); // Refresh UI
+                    } else {
+                        if (playerData.coins >= skin.price) {
+                            if(confirm(`Acheter ${skin.name} pour ${skin.price} pièces ?`)) {
+                                playerData.coins -= skin.price;
+                                playerData.inventory.push(key);
+                                playerData.equippedSkin = key;
+                                updateCurrencyUI();
+                                openShop();
+                            }
+                        } else {
+                            alert("Pas assez de pièces !");
+                        }
+                    }
+                };
+                container.appendChild(card);
+            });
+            showScreen('shop-screen');
+        }
+
+        // --- BATTLE PASS LOGIC ---
+        function openPass() {
+            const container = document.getElementById('pass-container');
+            container.innerHTML = '';
+
+            BATTLE_PASS_DB.forEach((reward, index) => {
+                const isUnlocked = playerData.level >= reward.level;
+                const isClaimed = playerData.claimedPassRewards.includes(index);
+
+                const row = document.createElement('div');
+                row.className = `pass-row ${isUnlocked ? 'unlocked' : 'locked'}`;
+                
+                let icon = reward.type === 'coins' ? 'fa-coins' : 'fa-rocket';
+                
+                row.innerHTML = `
+                    <div class="reward-info">
+                        <div style="font-weight:bold; color: #888;">Niv. ${reward.level}</div>
+                        <i class="fas ${icon} reward-icon"></i>
+                        <div>${reward.desc}</div>
+                    </div>
+                    <button class="claim-btn" ${(!isUnlocked || isClaimed) ? 'disabled' : ''} 
+                        onclick="claimReward(${index})">
+                        ${isClaimed ? 'Reçu' : (isUnlocked ? 'Réclamer' : 'Bloqué')}
+                    </button>
+                `;
+                container.appendChild(row);
+            });
+            showScreen('pass-screen');
+        }
+
+        window.claimReward = function(index) {
+            const reward = BATTLE_PASS_DB[index];
+            playerData.claimedPassRewards.push(index);
+            
+            if (reward.type === 'coins') {
+                playerData.coins += reward.amount;
+                alert(`Vous avez reçu ${reward.amount} pièces !`);
+            } else if (reward.type === 'skin') {
+                if (!playerData.inventory.includes(reward.id)) {
+                    playerData.inventory.push(reward.id);
+                    alert(`Nouveau skin débloqué : ${SKINS_DB[reward.id].name} !`);
+                } else {
+                    playerData.coins += 100; // Compensation si déjà possédé
+                    alert("Skin déjà possédé. +100 pièces en compensation.");
+                }
+            }
+            updateCurrencyUI();
+            openPass();
+        }
+
+        // --- INPUTS ---
+        window.addEventListener('keydown', e => {
+            if(e.key === 'ArrowRight') input.right = true;
+            if(e.key === 'ArrowLeft') input.left = true;
+            if(e.key === ' ') input.shooting = true;
+            input.type = 'keyboard';
+        });
+        window.addEventListener('keyup', e => {
+            if(e.key === 'ArrowRight') input.right = false;
+            if(e.key === 'ArrowLeft') input.left = false;
+            if(e.key === ' ') input.shooting = false;
+        });
+        window.addEventListener('mousemove', e => {
+            input.x = e.clientX;
+            input.y = e.clientY;
+            input.type = 'mouse';
+        });
+        window.addEventListener('mousedown', () => input.shooting = true);
+        window.addEventListener('mouseup', () => input.shooting = false);
+        
+        // Touch
+        window.addEventListener('touchmove', e => {
+            e.preventDefault();
+            input.x = e.touches[0].clientX;
+            input.y = e.touches[0].clientY;
+            input.type = 'mouse';
+        }, {passive: false});
+        window.addEventListener('touchstart', e => {
+             input.shooting = true;
+             input.x = e.touches[0].clientX;
+        });
+        window.addEventListener('touchend', () => input.shooting = false);
+
+
+        // --- INIT ---
+        createStars();
+        animate(); // Start background animation
+        openLobby(); // Start in lobby
+
     </script>
 </body>
 </html>
